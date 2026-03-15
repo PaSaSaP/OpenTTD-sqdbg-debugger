@@ -226,13 +226,13 @@ typedef enum
 	kUTFEscapeJSON,
 } EUTFEscape;
 
-int IsValidUTF8( const char *src, unsigned int srclen );
+int IsValidUTF8(std::optional<std::string_view> src );
 #ifdef SQUNICODE
-int IsValidUnicode( const SQChar *src, unsigned int srclen );
+int IsValidUnicode(std::optional<std::string_view> src, unsigned int srclen );
 template < bool undoEscape = false >
-unsigned int UTF8ToSQUnicode( SQChar *dst, unsigned int destSize, const char *src, unsigned int srclen );
+unsigned int UTF8ToSQUnicode(std::optional<std::string_view> dst, unsigned int destSize, std::optional<std::string_view> src, unsigned int srclen );
 template < EUTFEscape escape = kUTFNoEscape >
-unsigned int SQUnicodeToUTF8( char *dst, unsigned int destSize, const SQChar *src, unsigned int srclen );
+unsigned int SQUnicodeToUTF8( char *dst, unsigned int destSize, std::optional<std::string_view> src, unsigned int srclen );
 
 // Returns code unit count
 template < bool undoEscape = false >
@@ -243,29 +243,29 @@ inline unsigned int SQUnicodeLength( const char *src, unsigned int srclen )
 
 // Returns byte length
 template < EUTFEscape escape = kUTFNoEscape >
-inline unsigned int UTF8Length( const SQChar *src, unsigned int srclen )
+inline unsigned int UTF8Length(std::optional<std::string_view> src, unsigned int srclen )
 {
 	return SQUnicodeToUTF8< escape >( NULL, 0, src, srclen );
 }
 #endif
 
-inline unsigned int scstombslen( const SQChar *src, unsigned int srclen )
+inline unsigned int scstombslen(std::optional<std::string_view> src )
 {
 #ifdef SQUNICODE
 	return UTF8Length( src, srclen );
 #else
 	(void)src;
-	return srclen;
+	return src? src->length(): 0;
 #endif
 }
 
-inline unsigned int scstombs( char *dst, unsigned int destSize, const SQChar *src, unsigned int srclen )
+inline unsigned int scstombs( char *dst, unsigned int destSize, std::optional<std::string_view> src )
 {
 #ifdef SQUNICODE
 	return SQUnicodeToUTF8( dst, destSize, src, srclen );
 #else
-	unsigned int len = min( srclen, destSize );
-	memcpy( dst, src, len );
+	unsigned int len = min( src->length(), destSize);
+	memcpy( dst, src->data(), src->length());
 	return len;
 #endif
 }
@@ -287,8 +287,8 @@ struct string_t
 
 #ifndef SQUNICODE
 	string_t( SQString *src ) :
-		ptr(src->_val),
-		len(src->_len)
+		ptr(const_cast<char*>(src->View().data())),
+		len(src->View().length())
 	{
 	}
 #endif
@@ -350,8 +350,9 @@ struct string_t
 #else
 	bool IsEqualTo( const SQString *other ) const
 	{
-		if ( (SQUnsignedInteger)len == (SQUnsignedInteger)other->_len && *ptr == *other->_val )
-			return !memcmp( ptr, other->_val, len * sizeof(SQChar) );
+		auto v = other->View();
+		if ( (SQUnsignedInteger)len == (SQUnsignedInteger)v.length() && *ptr == *v.data())
+			return !memcmp( ptr, v.data(), len * sizeof(char));
 
 		return false;
 	}
@@ -384,15 +385,21 @@ struct string_t
 #ifndef SQUNICODE
 	void Assign( const SQString *src )
 	{
-		ptr = (SQChar*)src->_val;
-		len = src->_len;
+		auto sv = src->View();
+		ptr = const_cast<char*>(sv.data());
+		len = sv.length();
+	}
+
+	void Assign(std::string_view sv)
+	{
+		ptr = const_cast<char *>(sv.data());
+		len = sv.length();
 	}
 #endif
 
-private:
-	operator const char*();
-	operator char*();
-	string_t &operator=( const char *src );
+	operator const char *() = delete;
+	operator char *() = delete;
+	string_t &operator=(const char *src) = delete;
 };
 
 struct conststring_t : string_t

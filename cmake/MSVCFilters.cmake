@@ -16,6 +16,7 @@ source_group("Save/Load handlers\\Compat" REGULAR_EXPRESSION "src/saveload/compa
 source_group("Sound" REGULAR_EXPRESSION "src/sound/")
 source_group("Sprite loaders" REGULAR_EXPRESSION "src/spriteloader/")
 source_group("Squirrel" REGULAR_EXPRESSION "src/3rdparty/squirrel/squirrel/")
+source_group("Squirrel Debugger" REGULAR_EXPRESSION "src/3rdparty/sqdbg/sqdbg/")
 source_group("Tables" REGULAR_EXPRESSION "src/table/")
 source_group("Video" REGULAR_EXPRESSION "src/video/")
 source_group("Video\\GL" REGULAR_EXPRESSION "src/3rdparty/opengl/")

@@ -329,7 +329,7 @@ static inline void PutStr( CBuffer *buffer, const string_t &str, bool quote )
 						}
 						else
 						{
-							len += sizeof(SQChar) * 2 + 2;
+							len += sizeof(char) * 2 + 2;
 						}
 					}
 				}
@@ -498,6 +498,12 @@ static inline void PutStr( CBuffer *buffer, const sqstring_t &str, bool quote )
 }
 #endif
 
+static inline void PutStr(CBuffer *buffer, std::string_view sv, bool quote)
+{
+	string_t str{ sv.data(), (unsigned)sv.length() };
+	PutStr(buffer, str, quote);
+}
+
 static inline void PutChar( CBuffer *buffer, char c )
 {
 	buffer->base.Ensure( buffer->Size() + 1 );
@@ -515,7 +521,7 @@ static inline void PutInt( CBuffer *buffer, I val )
 template < bool padding, typename I >
 static inline void PutHex( CBuffer *buffer, I val )
 {
-	STATIC_ASSERT( IS_UNSIGNED( I ) );
+	STATIC_ASSERT( IS_UNSIGNED( I ) ); // TODO
 	buffer->base.Ensure( buffer->Size() + countdigits<16>( val ) + 1 );
 	int len = printhex< padding >( buffer->Base() + buffer->Size(), buffer->Capacity() - buffer->Size(), val );
 	buffer->size += len;
@@ -682,6 +688,14 @@ public:
 		PutChar( m_pBuffer, '\"' );
 	}
 
+	void SetString(const string_t &key, std::string_view sv, bool quote = false)
+	{
+		PutKey(key);
+		PutChar(m_pBuffer, '\"');
+		PutStr(m_pBuffer, sv, quote);
+		PutChar(m_pBuffer, '\"');
+	}
+
 #ifdef SQUNICODE
 	void SetString( const string_t &key, const sqstring_t &val, bool quote = false )
 	{
@@ -700,6 +714,13 @@ public:
 		PutChar( m_pBuffer, '\"' );
 	}
 
+	template <typename G>
+	constexpr auto cast_unsigned_(G v)
+	{
+		using U = std::make_unsigned_t<G>;
+		return static_cast<U>(v);
+	}
+
 	template < typename I >
 	void SetIntBrackets( const string_t &key, I val, bool hex = false )
 	{
@@ -712,7 +733,7 @@ public:
 		}
 		else
 		{
-			PutHex< false >( m_pBuffer, cast_unsigned( val ) );
+			PutHex< false >(m_pBuffer, cast_unsigned_(val));
 		}
 		PutChar( m_pBuffer, ']' );
 		PutChar( m_pBuffer, '\"' );

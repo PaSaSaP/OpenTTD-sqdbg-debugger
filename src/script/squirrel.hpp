@@ -12,6 +12,7 @@
 
 #include <squirrel.h>
 #include "../core/convertible_through_base.hpp"
+#include "../../sqdbg/include/sqdbg.h"
 
 /** The type of script we're working with, i.e. for who is it? */
 enum class ScriptType : uint8_t {
@@ -29,6 +30,7 @@ private:
 	using SQPrintFunc = void (bool error_msg, std::string_view message);
 
 	HSQUIRRELVM vm;          ///< The VirtualMachine instance for squirrel
+	HSQDEBUGSERVER dbg;      ///< Debugger connected to vm
 	void *global_pointer;    ///< Can be set by who ever initializes Squirrel
 	SQPrintFunc *print_func; ///< Points to either nullptr, or a custom print handler
 	bool crashed;            ///< True if the squirrel script made an error.
@@ -286,6 +288,8 @@ public:
 	 * Completely reset the engine; start from scratch.
 	 */
 	void Reset();
+
+	void UpdateDebugger();
 
 	/**
 	 * Get number of bytes allocated by this VM.
