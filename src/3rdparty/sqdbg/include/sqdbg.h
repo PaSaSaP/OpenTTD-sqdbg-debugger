@@ -12,6 +12,7 @@
 
 #define SQDBG_SV_API_VER 1
 #define SQDBG_CALL_DEFAULT_ERROR_HANDLER 1
+#define SQDBG_DEBUGGER_ECHO_OUTPUT 1
 
 #ifndef SQDBG_API
 #ifdef SQDBG_DLL
@@ -62,8 +63,8 @@ SQDBG_API void sqdbg_frame( HSQDEBUGSERVER dbg );
 
 // Copies the script to be able to source it to debugger clients
 SQDBG_API void sqdbg_on_script_compile( HSQDEBUGSERVER dbg,
-		const SQChar *script, SQInteger scriptlen,
-		const SQChar *sourcename, SQInteger sourcenamelen );
+		std::optional<std::string_view> script,
+		std::optional<std::string_view> sourcename );
 
 // Check if a client is connected to the debugger
 // Returns 0 if there is no client connected

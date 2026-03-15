@@ -526,7 +526,7 @@ public:
 			{
 				int err = errno;
 				m_pszLastMsgFmt = "(sqdbg) WSA startup failed";
-				m_pszLastMsg = strerr(err);
+				m_pszLastMsg = gai_strerrorA(err);
 				return false;
 			}
 			m_bWSAInit = true;
@@ -540,7 +540,7 @@ public:
 			int err = errno;
 			Shutdown();
 			m_pszLastMsgFmt = "(sqdbg) Failed to open socket";
-			m_pszLastMsg = strerr(err);
+			m_pszLastMsg = gai_strerrorA(err);
 			return false;
 		}
 
@@ -555,7 +555,7 @@ public:
 			int err = errno;
 			Shutdown();
 			m_pszLastMsgFmt = "(sqdbg) Failed to set socket non-blocking";
-			m_pszLastMsg = strerr(err);
+			m_pszLastMsg = gai_strerrorA(err);
 			return false;
 		}
 
@@ -566,7 +566,7 @@ public:
 			int err = errno;
 			Shutdown();
 			m_pszLastMsgFmt = "(sqdbg) Failed to set TCP nodelay";
-			m_pszLastMsg = strerr(err);
+			m_pszLastMsg = gai_strerrorA(err);
 			return false;
 		}
 
@@ -579,7 +579,7 @@ public:
 			int err = errno;
 			Shutdown();
 			m_pszLastMsgFmt = "(sqdbg) Failed to set don't linger";
-			m_pszLastMsg = strerr(err);
+			m_pszLastMsg = gai_strerrorA(err);
 			return false;
 		}
 
@@ -594,7 +594,7 @@ public:
 			int err = errno;
 			Shutdown();
 			m_pszLastMsgFmt = "(sqdbg) Failed to bind socket on port";
-			m_pszLastMsg = strerr(err);
+			m_pszLastMsg = gai_strerrorA(err);
 			return false;
 		}
 
@@ -603,7 +603,7 @@ public:
 			int err = errno;
 			Shutdown();
 			m_pszLastMsgFmt = "(sqdbg) Failed to listen to socket";
-			m_pszLastMsg = strerr(err);
+			m_pszLastMsg = gai_strerrorA(err);
 			return false;
 		}
 
@@ -696,7 +696,7 @@ public:
 				int err = errno;
 				DisconnectClient();
 				m_pszLastMsgFmt = "(sqdbg) Network error";
-				m_pszLastMsg = strerr(err);
+				m_pszLastMsg = gai_strerrorA(err);
 				return false;
 			}
 
@@ -749,7 +749,7 @@ public:
 				int err = errno;
 				DisconnectClient();
 				m_pszLastMsgFmt = "(sqdbg) Network error";
-				m_pszLastMsg = strerr(err);
+				m_pszLastMsg = gai_strerrorA(err);
 				return false;
 			}
 
@@ -763,7 +763,7 @@ public:
 				int err = errno;
 				DisconnectClient();
 				m_pszLastMsgFmt = "(sqdbg) Client disconnected";
-				m_pszLastMsg = strerr(err);
+				m_pszLastMsg = gai_strerrorA(err);
 				return false;
 			}
 

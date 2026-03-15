@@ -522,6 +522,18 @@ void Squirrel::Initialize()
 	this->crashed = false;
 	this->overdrawn_ops = 0;
 	this->vm = sq_open(1024);
+	std::vector<std::string> do_not_debug_these_api{
+		"GSScanner",
+		"AIScanner",
+	};
+
+	if (std::find(do_not_debug_these_api.begin(), do_not_debug_these_api.end(), this->api_name) == do_not_debug_these_api.end()) {
+		this->dbg = sqdbg_attach_debugger(vm);
+		static int port = 2221;
+		port++;
+		fmt::print("sqdbg API:{} port:{}\n", this->api_name, port);
+		sqdbg_listen_socket(this->dbg, port);
+	}
 
 	/* Handle compile-errors ourself, so we can display it nicely */
 	sq_setcompilererrorhandler(this->vm, &Squirrel::CompileError);
@@ -742,6 +754,13 @@ void Squirrel::Reset()
 {
 	this->Uninitialize();
 	this->Initialize();
+}
+
+void Squirrel::UpdateDebugger()
+{
+	if (this->dbg) {
+		sqdbg_frame(dbg);
+	}
 }
 
 void Squirrel::InsertResult(bool result)

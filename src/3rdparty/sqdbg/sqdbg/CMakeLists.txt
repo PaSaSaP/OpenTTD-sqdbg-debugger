@@ -1,0 +1,9 @@
+add_files(
+	debug.h
+	json.h
+	net.h
+	protocol.h
+	server.cpp
+	str.h
+	vec.h
+)
