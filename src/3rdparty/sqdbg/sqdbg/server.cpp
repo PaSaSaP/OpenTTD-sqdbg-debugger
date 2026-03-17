@@ -648,6 +648,37 @@ inline void StripFileName( C **ptr, unsigned int *len )
 	}
 }
 
+inline std::string_view StripFileName(std::string_view path, unsigned int &len)
+{
+	size_t pos = path.find_last_of("/\\");
+	std::string_view result;
+
+	if (pos == std::string_view::npos) {
+		result = path;
+	} else {
+		result = path.substr(pos + 1);
+	}
+
+	len = static_cast<unsigned int>(result.size());
+	return result;
+}
+
+template <typename C>
+inline std::span<C> StripFileName(std::span<C> s, unsigned int &len)
+{
+	std::span<C> result = s;
+
+	for (size_t i = s.size(); i > 0; --i) {
+		if (s[i - 1] == '/' || s[i - 1] == '\\') {
+			result = s.subspan(i);
+			break;
+		}
+	}
+
+	len = static_cast<unsigned int>(result.size());
+	return result;
+}
+
 inline void StripWhitespace( string_t &str )
 {
 	char *end = str.ptr + str.len;
@@ -1130,7 +1161,7 @@ public:
 			std::copy(v.begin(), v.end(), tmp.begin());
 
 #ifdef SQDBG_SOURCENAME_HAS_PATH
-			StripFileName( &tmp, &len );
+			tmp = StripFileName(tmp, len);
 #endif
 
 			int line = GetFunctionDeclarationLine( func );
@@ -4084,7 +4115,8 @@ void SQDebugServer::OnScriptCompile(std::optional<std::string_view> script,
 		return;
 
 #ifdef SQDBG_SOURCENAME_HAS_PATH
-	StripFileName( &sourcename, &sourcenamelen );
+	unsigned len = 0;
+	sourcename = StripFileName( *sourcename, len );
 #endif
 
 #ifdef SQUNICODE
@@ -4272,7 +4304,7 @@ void SQDebugServer::OnRequest_SetBreakpoints( const json_table_t &arguments, int
 
 	string_t srcname, srcpath;
 	source->GetString( "path", &srcpath );
-	// fmt::print("sqdbg OnRequest_SetBreakpoints path: {}\n", srcpath.ptr);
+	//fmt::print("sqdbg OnRequest_SetBreakpoints path: {}\n", srcpath.ptr);
 
 	if ( ( !source->GetString( "name", &srcname ) || srcname.IsEmpty() ) &&
 			!srcpath.IsEmpty() )
@@ -4280,7 +4312,7 @@ void SQDebugServer::OnRequest_SetBreakpoints( const json_table_t &arguments, int
 		srcname = srcpath;
 		StripFileName( &srcname.ptr, &srcname.len );
 	}
-	// fmt::print("sqdbg OnRequest_SetBreakpoints name: {}\n", srcname.ptr);
+	//fmt::print("sqdbg OnRequest_SetBreakpoints name: {}\n", srcname.ptr);
 
 	if ( !srcname.IsEmpty() && !srcpath.IsEmpty() )
 	{
@@ -4294,7 +4326,7 @@ void SQDebugServer::OnRequest_SetBreakpoints( const json_table_t &arguments, int
 		return;
 	}
 
-	RemoveBreakpoints( srcpath );
+	RemoveBreakpoints( srcname );
 
 	DAP_START_RESPONSE( seq, "setBreakpoints" );
 	DAP_SET_TABLE( body );
@@ -4328,7 +4360,7 @@ void SQDebugServer::OnRequest_SetBreakpoints( const json_table_t &arguments, int
 				hitsTarget = 0;
 		}
 
-		int id = AddBreakpoint(line, srcpath, condition, hitsTarget, logMessage);
+		int id = AddBreakpoint(line, srcname, condition, hitsTarget, logMessage);
 
 		wjson_table_t obp = obps.AppendTable();
 		obp.SetBool( "verified", ISVALID_ID(id) );
@@ -18073,7 +18105,7 @@ void SQDebugServer::RemoveLockedWatches()
 int SQDebugServer::AddBreakpoint( int line, const string_t &src,
 		const string_t &condition, int hitsTarget, const string_t &logMessage )
 {
-	// fmt::print("sqdbg breakpoint: {}:{}\n", src.ptr, line);
+	 //fmt::print("sqdbg breakpoint: {}:{}\n", src.ptr, line);
 	Assert( line > 0 && !src.IsEmpty() );
 
 #ifdef SQUNICODE
@@ -21037,7 +21069,7 @@ SQInteger SQDebugServer::SQDebugHook( HSQUIRRELVM vm )
 			}
 
 			Assert( _integer(type) <= INT_MAX && _integer(line) <= INT_MAX );
-			//if (_integer(type) == 'l') {
+			//if (_integer(type) == 'l' && _integer(line) == 74) {
 			//	fmt::print("DEBUGHOOK: type={} file={} line={} func={}\n",
 			//	   _integer(type), sfile, _integer(line), sfun);
 			//}
