@@ -2338,7 +2338,6 @@ public:
 			{
 				if ( !v.path.IsEqualTo( path ) )
 				{
-					fmt::print("sqdbg path map {} <> {}\n", name.ptr, path.ptr);
 					CopyString( allocator, path, &v.path );
 				}
 
@@ -4273,7 +4272,7 @@ void SQDebugServer::OnRequest_SetBreakpoints( const json_table_t &arguments, int
 
 	string_t srcname, srcpath;
 	source->GetString( "path", &srcpath );
-	fmt::print("sqdbg OnRequest_SetBreakpoints path: {}\n", srcpath.ptr);
+	// fmt::print("sqdbg OnRequest_SetBreakpoints path: {}\n", srcpath.ptr);
 
 	if ( ( !source->GetString( "name", &srcname ) || srcname.IsEmpty() ) &&
 			!srcpath.IsEmpty() )
@@ -4281,7 +4280,7 @@ void SQDebugServer::OnRequest_SetBreakpoints( const json_table_t &arguments, int
 		srcname = srcpath;
 		StripFileName( &srcname.ptr, &srcname.len );
 	}
-	fmt::print("sqdbg OnRequest_SetBreakpoints name: {}\n", srcname.ptr);
+	// fmt::print("sqdbg OnRequest_SetBreakpoints name: {}\n", srcname.ptr);
 
 	if ( !srcname.IsEmpty() && !srcpath.IsEmpty() )
 	{
@@ -4295,7 +4294,7 @@ void SQDebugServer::OnRequest_SetBreakpoints( const json_table_t &arguments, int
 		return;
 	}
 
-	RemoveBreakpoints( srcname );
+	RemoveBreakpoints( srcpath );
 
 	DAP_START_RESPONSE( seq, "setBreakpoints" );
 	DAP_SET_TABLE( body );
@@ -4329,7 +4328,7 @@ void SQDebugServer::OnRequest_SetBreakpoints( const json_table_t &arguments, int
 				hitsTarget = 0;
 		}
 
-		int id = AddBreakpoint(line, srcname, condition, hitsTarget, logMessage);
+		int id = AddBreakpoint(line, srcpath, condition, hitsTarget, logMessage);
 
 		wjson_table_t obp = obps.AppendTable();
 		obp.SetBool( "verified", ISVALID_ID(id) );
@@ -18074,7 +18073,7 @@ void SQDebugServer::RemoveLockedWatches()
 int SQDebugServer::AddBreakpoint( int line, const string_t &src,
 		const string_t &condition, int hitsTarget, const string_t &logMessage )
 {
-	fmt::print("sqdbg breakpoint: {}:{}\n", src.ptr, line);
+	// fmt::print("sqdbg breakpoint: {}:{}\n", src.ptr, line);
 	Assert( line > 0 && !src.IsEmpty() );
 
 #ifdef SQUNICODE
@@ -18229,7 +18228,7 @@ breakpoint_t *SQDebugServer::GetBreakpoint( int line, const sqstring_t &src )
 		breakpoint_t &bp = m_Breakpoints[i];
 
 		 //fmt::print("bp check(len:{}) {}:{}\n", bp.src.len, bp.src.ptr, bp.line);
-		if ( bp.line == line && bp.src.IsEqualTo( src ) )
+		if ( bp.line == line && bp.src.ptr && bp.src.IsEqualTo( src ) )
 		{
 			return &bp;
 		}
@@ -18307,7 +18306,7 @@ void SQDebugServer::RemoveBreakpoints( const string_t &source )
 	{
 		breakpoint_t &bp = m_Breakpoints[i];
 
-		if ( bp.src.IsEqualTo( src ) )
+		if ( bp.src.ptr && bp.src.IsEqualTo( src ) )
 		{
 			FreeBreakpoint( bp );
 			m_Breakpoints.Remove(i);

@@ -814,8 +814,6 @@ SQInteger ScriptInstance::GetOpsTillSuspend()
 bool ScriptInstance::DoCommandCallback(const CommandCost &result, const CommandDataBuffer &data, CommandDataBuffer result_data, Commands cmd)
 {
 	ScriptObject::ActiveInstance active(*this);
-	fmt::print("ai iupdate dbg\n");
-	engine->UpdateDebugger();
 
 	if (!ScriptObject::CheckLastCommand(data, cmd)) {
 		Debug(script, 1, "DoCommandCallback terminating a script, last command does not match expected command");
