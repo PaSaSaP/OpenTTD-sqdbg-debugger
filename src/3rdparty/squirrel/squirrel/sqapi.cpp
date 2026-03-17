@@ -134,7 +134,6 @@ void sq_close(HSQUIRRELVM v)
 
 SQRESULT sq_compile(HSQUIRRELVM v,SQLEXREADFUNC read,SQUserPointer p,std::string_view sourcename,SQBool raiseerror)
 {
-	fmt::print("sqapi compiling file {}\n", sourcename);
 	SQObjectPtr o;
 	if(Compile(v, read, p, sourcename, o, raiseerror != 0, _ss(v)->_debuginfo)) {
 		v->Push(SQClosure::Create(_ss(v), _funcproto(o)));
@@ -1265,7 +1264,6 @@ char32_t buf_lexfeed(SQUserPointer file)
 
 SQRESULT sq_compilebuffer(HSQUIRRELVM v,std::string_view buffer,std::string_view sourcename,SQBool raiseerror) {
 	StringConsumer consumer{buffer};
-	fmt::print("sqapi compiling {}\n", sourcename);
 	return sq_compile(v, buf_lexfeed, &consumer, sourcename, raiseerror);
 }
 

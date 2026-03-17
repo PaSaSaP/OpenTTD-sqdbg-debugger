@@ -282,24 +282,8 @@ ScriptObject::DisableDoCommandScope::DisableDoCommandScope()
 	return { false, estimate_only, asynchronous, networking };
 }
 
-class DebuggerUpdater {
-public:
-	DebuggerUpdater(Squirrel &engine) : engine(engine)
-	{
-	}
-	~DebuggerUpdater()
-	{
-		engine.UpdateDebugger();
-
-	}
-private:
-	Squirrel &engine;
-};
-
 /* static */ bool ScriptObject::DoCommandProcessResult(const CommandCost &res, Script_SuspendCallbackProc *callback, bool estimate_only, bool asynchronous)
 {
-	DebuggerUpdater du(*ScriptObject::GetActiveInstance().engine);
-
 	/* Set the default callback to return a true/false result of the DoCommand */
 	if (callback == nullptr) callback = &ScriptInstance::DoCommandReturn;
 

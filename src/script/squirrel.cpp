@@ -522,6 +522,7 @@ void Squirrel::Initialize()
 	this->crashed = false;
 	this->overdrawn_ops = 0;
 	this->vm = sq_open(1024);
+	this->dbg = nullptr;
 	std::vector<std::string> do_not_debug_these_api{
 		"GSScanner",
 		"AIScanner",
@@ -531,7 +532,7 @@ void Squirrel::Initialize()
 		this->dbg = sqdbg_attach_debugger(vm);
 		static int port = 2221;
 		port++;
-		fmt::print("sqdbg API:{} port:{}\n", this->api_name, port);
+		Debug(misc, 0, "[squirrel][sqdbg] Init API:{} port:{}", this->api_name, port);
 		sqdbg_listen_socket(this->dbg, port);
 	}
 
@@ -736,6 +737,11 @@ void Squirrel::Uninitialize()
 {
 	ScriptAllocatorScope alloc_scope(this);
 
+	/* Stop the debugger */
+	if (this->dbg) 		{
+		sqdbg_destroy_debugger(this->vm);
+		this->dbg = nullptr;
+	}
 	/* Remove the delegation */
 	sq_pushroottable(this->vm);
 	sq_pushnull(this->vm);
